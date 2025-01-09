@@ -130,7 +130,7 @@ contract MultiSigWalletTest is Test {
     }
 
     function testCannotSubmitTransactionIfNotSigner() public {
-        vm.prank(user4);  // No es un signatario
+        vm.prank(user4);
         vm.expectRevert("Not a signer");
         wallet.submitTransaction(user4, 1 ether, "");
     }
@@ -167,11 +167,9 @@ contract MultiSigWalletTest is Test {
         vm.prank(USER1);
         wallet.submitTransaction(user4, 1 ether, "");
 
-        // Confirmación insuficiente, ya que solo un signatario confirmó la transacción
         vm.prank(USER1);
         wallet.confirmTransaction(0);
 
-        // Se espera un error por confirmaciones insuficientes, no por no ser signatario
         vm.expectRevert("Not enough confirmations");
         wallet.executeTransaction(0);
     }
@@ -206,10 +204,10 @@ contract MultiSigWalletTest is Test {
         _signers[2] = user3;
 
         vm.expectRevert("Invalid confirmations");
-        new MultiSigWallet(_signers, 1); // Menos de 2 confirmaciones
+        new MultiSigWallet(_signers, 1);
 
         vm.expectRevert("Invalid confirmations");
-        new MultiSigWallet(_signers, 4); // Más confirmaciones que firmantes
+        new MultiSigWallet(_signers, 4);
     }
 
     function testCannotDeployWithInsufficientSigners() public {
@@ -231,7 +229,6 @@ contract MultiSigWalletTest is Test {
     }
 
     function testTransactionExecutionFailure() public {
-        // Creamos un contrato que rechazará recibir ETH
         RejectEther rejectEther = new RejectEther();
 
         vm.deal(address(wallet), 1 ether);
@@ -270,7 +267,7 @@ contract MultiSigWalletTest is Test {
         vm.prank(USER1);
         wallet.submitTransaction(user4, 1 ether, "");
 
-        vm.prank(user4);  // No es un firmante
+        vm.prank(user4);
         vm.expectRevert("Not a signer");
         wallet.revokeConfirmation(0);
     }
@@ -287,7 +284,7 @@ contract MultiSigWalletTest is Test {
         vm.prank(user2);
         wallet.confirmTransaction(0);
 
-        vm.prank(user4);  // No es un firmante
+        vm.prank(user4);
         vm.expectRevert("Not a signer");
         wallet.executeTransaction(0);
     }
@@ -296,7 +293,7 @@ contract MultiSigWalletTest is Test {
         vm.prank(USER1);
         wallet.submitTransaction(user4, 1 ether, "");
 
-        vm.prank(user4);  // No es un firmante
+        vm.prank(user4);
         vm.expectRevert("Not a signer");
         wallet.confirmTransaction(0);
     }
@@ -308,13 +305,13 @@ contract MultiSigWalletTest is Test {
         _signers[2] = user3;
 
         vm.expectRevert("Invalid confirmations");
-        new MultiSigWallet(_signers, 1); // Testing specifically the _requiredConfirmations >= 2 condition
+        new MultiSigWallet(_signers, 1);
     }
 
     function testCannotRemoveSignerNotInList() public {
         address nonExistentSigner = address(0x8);
 
-        // Intentar remover un signatario que no está en la lista
+
         vm.prank(USER1);
         vm.expectRevert("Not a signer");
         wallet.removeSigner(nonExistentSigner);
