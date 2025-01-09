@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.20;
 
 /// @title MultiSigWallet
 /// @notice Un contrato de wallet multisig con al menos dos firmas requeridas para la ejecución de transacciones.
@@ -32,7 +32,7 @@ contract MultiSigWallet {
 
     constructor(address[] memory _signers, uint256 _requiredConfirmations) {
         require(_signers.length >= 3, "At least 3 signers required");
-        require(_requiredConfirmations > 1 && _requiredConfirmations <= _signers.length, "Invalid confirmations");
+        require(_requiredConfirmations >= 2 && _requiredConfirmations <= _signers.length, "Invalid confirmations");
         signers = _signers;
         requiredConfirmations = _requiredConfirmations;
     }
@@ -53,8 +53,9 @@ contract MultiSigWallet {
         emit SubmitTransaction(msg.sender, transactions.length - 1);
     }
 
-    function confirmTransaction(uint256 _txIndex) public onlySigner {
+    function confirmTransaction(uint256 _txIndex) public {
         require(!transactions[_txIndex].executed, "Transaction already executed");
+        require(isSigner(msg.sender), "Not a signer");
         require(!confirmations[_txIndex][msg.sender], "Already confirmed");
 
         confirmations[_txIndex][msg.sender] = true;
@@ -63,7 +64,8 @@ contract MultiSigWallet {
         emit ConfirmTransaction(msg.sender, _txIndex);
     }
 
-    function revokeConfirmation(uint256 _txIndex) public onlySigner {
+    function revokeConfirmation(uint256 _txIndex) public {
+        require(isSigner(msg.sender), "Not a signer");
         require(confirmations[_txIndex][msg.sender], "Transaction not confirmed");
         require(!transactions[_txIndex].executed, "Transaction already executed");
 
@@ -73,7 +75,8 @@ contract MultiSigWallet {
         emit RevokeConfirmation(msg.sender, _txIndex);
     }
 
-    function executeTransaction(uint256 _txIndex) public onlySigner {
+    function executeTransaction(uint256 _txIndex) public {
+        require(isSigner(msg.sender), "Not a signer");
         require(transactions[_txIndex].confirmations >= requiredConfirmations, "Not enough confirmations");
         require(!transactions[_txIndex].executed, "Transaction already executed");
 
@@ -101,7 +104,7 @@ contract MultiSigWallet {
     }
 
     function removeSigner(address _signerToRemove) public onlySigner {
-        require(signers.length > 3, "Minimum 3 signers required");
+        require(signers.length > 2, "Minimum 2 signers required");
         require(isSigner(_signerToRemove), "Not a signer");
 
         uint256 index;
@@ -115,6 +118,7 @@ contract MultiSigWallet {
         signers[index] = signers[signers.length - 1];
         signers.pop();
     }
+
 
     function getSigners() public view returns (address[] memory) {
         return signers;

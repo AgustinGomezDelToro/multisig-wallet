@@ -85,4 +85,81 @@ contract MultiSigWalletTest is Test {
         wallet.removeSigner(user3);
         assert(!wallet.isSigner(user3));
     }
+
+
+
+
+    function testCannotConfirmAlreadyExecutedTransaction() public {
+        vm.deal(address(wallet), 1 ether);
+
+        vm.prank(USER1);
+        wallet.submitTransaction(user4, 1 ether, "");
+
+        vm.prank(USER1);
+        wallet.confirmTransaction(0);
+
+        vm.prank(user2);
+        wallet.confirmTransaction(0);
+
+        vm.prank(USER1);
+        wallet.executeTransaction(0);
+
+        vm.prank(USER1);
+        vm.expectRevert("Transaction already executed");
+        wallet.confirmTransaction(0);
+    }
+
+    function testCannotRevokeExecutedTransaction() public {
+        vm.deal(address(wallet), 1 ether);
+
+        vm.prank(USER1);
+        wallet.submitTransaction(user4, 1 ether, "");
+
+        vm.prank(USER1);
+        wallet.confirmTransaction(0);
+
+        vm.prank(user2);
+        wallet.confirmTransaction(0);
+
+        vm.prank(USER1);
+        wallet.executeTransaction(0);
+
+        vm.prank(USER1);
+        vm.expectRevert("Transaction already executed");
+        wallet.revokeConfirmation(0);
+    }
+
+    function testCannotExecuteWithInsufficientConfirmations() public {
+        vm.deal(address(wallet), 1 ether);
+
+        vm.prank(USER1);
+        wallet.submitTransaction(user4, 1 ether, "");
+
+        vm.prank(USER1);
+        wallet.confirmTransaction(0);
+
+        vm.expectRevert("Not enough confirmations");
+        wallet.executeTransaction(0);
+    }
+
+    function testCannotRemoveNonexistentSigner() public {
+        address nonexistentSigner = address(0x9);
+        vm.prank(USER1);
+        vm.expectRevert("Not a signer");
+        wallet.removeSigner(nonexistentSigner);
+    }
+
+    function testReceiveEther() public {
+        uint256 initialBalance = address(wallet).balance;
+        vm.deal(address(this), 1 ether);
+        (bool success, ) = address(wallet).call{value: 1 ether}("");
+        assert(success);
+        assertEq(address(wallet).balance, initialBalance + 1 ether);
+    }
+
+    function testAddExistingSigner() public {
+        vm.prank(USER1);
+        vm.expectRevert("Already a signer");
+        wallet.addSigner(user2);
+    }
 }
