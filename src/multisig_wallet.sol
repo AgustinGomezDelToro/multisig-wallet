@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.17;
 
 /// @title MultiSigWallet
 /// @notice Un contrato de wallet multisig con al menos dos firmas requeridas para la ejecución de transacciones.
@@ -65,9 +65,9 @@ contract MultiSigWallet {
     }
 
     function revokeConfirmation(uint256 _txIndex) public {
+        require(!transactions[_txIndex].executed, "Transaction already executed");
         require(isSigner(msg.sender), "Not a signer");
         require(confirmations[_txIndex][msg.sender], "Transaction not confirmed");
-        require(!transactions[_txIndex].executed, "Transaction already executed");
 
         confirmations[_txIndex][msg.sender] = false;
         transactions[_txIndex].confirmations--;
@@ -76,8 +76,8 @@ contract MultiSigWallet {
     }
 
     function executeTransaction(uint256 _txIndex) public {
-        require(isSigner(msg.sender), "Not a signer");
         require(transactions[_txIndex].confirmations >= requiredConfirmations, "Not enough confirmations");
+        require(isSigner(msg.sender), "Not a signer");
         require(!transactions[_txIndex].executed, "Transaction already executed");
 
         Transaction storage txn = transactions[_txIndex];
@@ -118,7 +118,6 @@ contract MultiSigWallet {
         signers[index] = signers[signers.length - 1];
         signers.pop();
     }
-
 
     function getSigners() public view returns (address[] memory) {
         return signers;

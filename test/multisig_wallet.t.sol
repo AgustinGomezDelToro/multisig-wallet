@@ -135,12 +135,15 @@ contract MultiSigWalletTest is Test {
         vm.prank(USER1);
         wallet.submitTransaction(user4, 1 ether, "");
 
+        // Confirmación insuficiente, ya que solo un signatario confirmó la transacción
         vm.prank(USER1);
         wallet.confirmTransaction(0);
 
+        // Se espera un error por confirmaciones insuficientes, no por no ser signatario
         vm.expectRevert("Not enough confirmations");
         wallet.executeTransaction(0);
     }
+
 
     function testCannotRemoveNonexistentSigner() public {
         address nonexistentSigner = address(0x9);
