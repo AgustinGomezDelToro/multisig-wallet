@@ -197,4 +197,73 @@ contract MultiSigWalletTest is Test {
         vm.expectRevert("Already a signer");
         wallet.addSigner(user2);
     }
+
+
+    function testCannotDeployWithInvalidConfirmations() public {
+        address[] memory _signers = new address[](3);
+        _signers[0] = USER1;
+        _signers[1] = user2;
+        _signers[2] = user3;
+
+        vm.expectRevert("Invalid confirmations");
+        new MultiSigWallet(_signers, 1); // Menos de 2 confirmaciones
+
+        vm.expectRevert("Invalid confirmations");
+        new MultiSigWallet(_signers, 4); // Más confirmaciones que firmantes
+    }
+
+    function testCannotDeployWithInsufficientSigners() public {
+        address[] memory _signers = new address[](2);
+        _signers[0] = USER1;
+        _signers[1] = user2;
+
+        vm.expectRevert("At least 3 signers required");
+        new MultiSigWallet(_signers, 2);
+    }
+
+    function testCannotReduceSignersBelowMinimum() public {
+        // Primero removemos un firmante para quedar con el mínimo
+        vm.prank(USER1);
+        wallet.removeSigner(user3);
+
+        // Intentamos remover otro firmante
+        vm.prank(USER1);
+        vm.expectRevert("Minimum 2 signers required");
+        wallet.removeSigner(user2);
+    }
+
+    function testTransactionExecutionFailure() public {
+        // Creamos un contrato que rechazará recibir ETH
+        RejectEther rejectEther = new RejectEther();
+
+        vm.deal(address(wallet), 1 ether);
+
+        vm.prank(USER1);
+        wallet.submitTransaction(address(rejectEther), 1 ether, "");
+
+        vm.prank(USER1);
+        wallet.confirmTransaction(0);
+
+        vm.prank(user2);
+        wallet.confirmTransaction(0);
+
+        vm.prank(USER1);
+        vm.expectRevert("Transaction failed");
+        wallet.executeTransaction(0);
+    }
+
+    function testGetSigners() public {
+        address[] memory currentSigners = wallet.getSigners();
+        assertEq(currentSigners.length, 3);
+        assertEq(currentSigners[0], USER1);
+        assertEq(currentSigners[1], user2);
+        assertEq(currentSigners[2], user3);
+    }
+}
+
+
+contract RejectEther {
+    receive() external payable {
+        revert("Cannot receive ETH");
+    }
 }
