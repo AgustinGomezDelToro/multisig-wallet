@@ -53,16 +53,7 @@ contract MultiSigWallet {
         emit SubmitTransaction(msg.sender, transactions.length - 1);
     }
 
-    function confirmTransaction(uint256 _txIndex) public {
-        require(!transactions[_txIndex].executed, "Transaction already executed");
-        require(isSigner(msg.sender), "Not a signer");
-        require(!confirmations[_txIndex][msg.sender], "Already confirmed");
 
-        confirmations[_txIndex][msg.sender] = true;
-        transactions[_txIndex].confirmations++;
-
-        emit ConfirmTransaction(msg.sender, _txIndex);
-    }
 
     function revokeConfirmation(uint256 _txIndex) public {
         require(!transactions[_txIndex].executed, "Transaction already executed");
@@ -103,9 +94,23 @@ contract MultiSigWallet {
         signers.push(_newSigner);
     }
 
+    function confirmTransaction(uint256 _txIndex) public {
+        require(_txIndex < transactions.length, "Transaction does not exist");
+        require(!transactions[_txIndex].executed, "Transaction already executed");
+        require(isSigner(msg.sender), "Not a signer");
+        require(!confirmations[_txIndex][msg.sender], "Already confirmed");
+
+        confirmations[_txIndex][msg.sender] = true;
+        transactions[_txIndex].confirmations++;
+
+        emit ConfirmTransaction(msg.sender, _txIndex);
+    }
+
+
     function removeSigner(address _signerToRemove) public onlySigner {
         require(signers.length > 2, "Minimum 2 signers required");
         require(isSigner(_signerToRemove), "Not a signer");
+        require(msg.sender != _signerToRemove, "Cannot remove yourself");
 
         uint256 index;
         for (uint256 i = 0; i < signers.length; i++) {
@@ -118,6 +123,7 @@ contract MultiSigWallet {
         signers[index] = signers[signers.length - 1];
         signers.pop();
     }
+
 
     function getSigners() public view returns (address[] memory) {
         return signers;

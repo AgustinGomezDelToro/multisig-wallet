@@ -129,6 +129,38 @@ contract MultiSigWalletTest is Test {
         wallet.revokeConfirmation(0);
     }
 
+    function testCannotSubmitTransactionIfNotSigner() public {
+        vm.prank(user4);  // No es un signatario
+        vm.expectRevert("Not a signer");
+        wallet.submitTransaction(user4, 1 ether, "");
+    }
+
+
+    function testCannotConfirmTransactionTwice() public {
+        vm.prank(USER1);
+        wallet.submitTransaction(user4, 1 ether, "");
+
+        vm.prank(USER1);
+        wallet.confirmTransaction(0);
+
+        vm.prank(USER1);
+        vm.expectRevert("Already confirmed");
+        wallet.confirmTransaction(0);
+    }
+
+    function testCannotConfirmNonExistentTransaction() public {
+        vm.prank(USER1);
+        vm.expectRevert("Transaction does not exist");
+        wallet.confirmTransaction(99);
+    }
+
+    function testCannotRemoveSelfAsSigner() public {
+        vm.prank(USER1);
+        vm.expectRevert("Cannot remove yourself");
+        wallet.removeSigner(USER1);
+    }
+
+
     function testCannotExecuteWithInsufficientConfirmations() public {
         vm.deal(address(wallet), 1 ether);
 
