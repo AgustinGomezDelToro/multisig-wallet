@@ -252,12 +252,55 @@ contract MultiSigWalletTest is Test {
         wallet.executeTransaction(0);
     }
 
-    function testGetSigners() public {
+    function testGetSigners() public view {
         address[] memory currentSigners = wallet.getSigners();
         assertEq(currentSigners.length, 3);
         assertEq(currentSigners[0], USER1);
         assertEq(currentSigners[1], user2);
         assertEq(currentSigners[2], user3);
+    }
+    function testCannotRevokeUnconfirmedTransaction() public {
+        vm.prank(USER1);
+        wallet.submitTransaction(user4, 1 ether, "");
+
+        vm.prank(USER1);
+        vm.expectRevert("Transaction not confirmed");
+        wallet.revokeConfirmation(0);
+    }
+
+    function testCannotRevokeConfirmationIfNotSigner() public {
+        vm.prank(USER1);
+        wallet.submitTransaction(user4, 1 ether, "");
+
+        vm.prank(user4);  // No es un firmante
+        vm.expectRevert("Not a signer");
+        wallet.revokeConfirmation(0);
+    }
+
+    function testExecuteTransactionIfNotSigner() public {
+        vm.deal(address(wallet), 1 ether);
+
+        vm.prank(USER1);
+        wallet.submitTransaction(user4, 1 ether, "");
+
+        vm.prank(USER1);
+        wallet.confirmTransaction(0);
+
+        vm.prank(user2);
+        wallet.confirmTransaction(0);
+
+        vm.prank(user4);  // No es un firmante
+        vm.expectRevert("Not a signer");
+        wallet.executeTransaction(0);
+    }
+
+    function testCannotConfirmTransactionIfNotSigner() public {
+        vm.prank(USER1);
+        wallet.submitTransaction(user4, 1 ether, "");
+
+        vm.prank(user4);  // No es un firmante
+        vm.expectRevert("Not a signer");
+        wallet.confirmTransaction(0);
     }
 }
 
