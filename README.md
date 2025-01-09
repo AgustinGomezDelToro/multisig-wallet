@@ -1,66 +1,37 @@
-## Foundry
+## MultiSigWallet
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+**Le MultiSigWallet est un smart contract Ethereum permettant la gestion d'un portefeuille multi-signatures. Il requiert au moins deux signatures parmi les signataires autorisés pour exécuter une transaction, garantissant ainsi une sécurité accrue pour la gestion de fonds partagés.**
 
-Foundry consists of:
+Fonctionnalités Principales :
+-   **Ajout de signataires** : Les signataires peuvent ajouter de nouveaux signataires au contrat.
+-  **Retrait de signataires** : Les signataires peuvent supprimer des signataires existants sous réserve qu'au moins deux signataires restent actifs.
+-  **Soumission de transactions** : Un signataire peut soumettre une nouvelle transaction.
+-  **Confirmation de transactions** : Un signataire peut confirmer une transaction existante.
+-  **Révocation de confirmation** : Un signataire peut révoquer une confirmation donnée précédemment.
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
 
-## Documentation
-
-https://book.getfoundry.sh/
-
-## Usage
-
-### Build
-
+Déploiement et Configuration :
 ```shell
-$ forge build
+constructor(address[] memory _signers, uint256 _requiredConfirmations)
 ```
 
-### Test
+- **_signers : Liste des adresses des signataires initiaux (minimum 3).**
+- **_requiredConfirmations : Nombre minimal de confirmations pour exécuter une transaction (minimum 2).**
+
+### Tests Principaux
+
+
+- **testSubmitTransaction**: Vérifie la création d'une transaction.
+- **testConfirmTransaction**: Vérifie la confirmation correcte d'une transaction.
+- **testExecuteTransaction**: Vérifie l'exécution correcte après confirmations suffisantes.
+- **testCannotExecuteWithInsufficientConfirmations**: Vérifie l'échec en cas de confirmations insuffisantes.
+- **testAddSigner**: Teste l'ajout d'un nouveau signataire.
+- **testRemoveSigner**: Teste la suppression d'un signataire avec minimum 2 signataires restants.
+- **testRevokeConfirmation**: Teste la révocation d'une confirmation donnée précédemment.
+- **testRevokeConfirmationFail**: Teste l'échec de révocation d'une confirmation non existante.
+
+
 
 ```shell
-$ forge test
-```
-
-### Format
-
-```shell
-$ forge fmt
-```
-
-### Gas Snapshots
-
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/multisig_wallet.sol.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
+forge coverage
 ```
