@@ -2,7 +2,7 @@
 
 **Le MultiSigWallet est un smart contract Ethereum permettant la gestion d'un portefeuille multi-signatures. Il requiert au moins deux signatures parmi les signataires autorisés pour exécuter une transaction, garantissant ainsi une sécurité accrue pour la gestion de fonds partagés.**
 
-Fonctionnalités Principales :
+### Fonctionnalités Principales :
 -   **Ajout de signataires** : Les signataires peuvent ajouter de nouveaux signataires au contrat.
 -  **Retrait de signataires** : Les signataires peuvent supprimer des signataires existants sous réserve qu'au moins deux signataires restent actifs.
 -  **Soumission de transactions** : Un signataire peut soumettre une nouvelle transaction.
@@ -10,7 +10,7 @@ Fonctionnalités Principales :
 -  **Révocation de confirmation** : Un signataire peut révoquer une confirmation donnée précédemment.
 
 
-Déploiement et Configuration :
+### Déploiement et Configuration :
 ```shell
 constructor(address[] memory _signers, uint256 _requiredConfirmations)
 ```
