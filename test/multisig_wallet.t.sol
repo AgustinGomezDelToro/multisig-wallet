@@ -222,11 +222,9 @@ contract MultiSigWalletTest is Test {
     }
 
     function testCannotReduceSignersBelowMinimum() public {
-        // Primero removemos un firmante para quedar con el mínimo
         vm.prank(USER1);
         wallet.removeSigner(user3);
 
-        // Intentamos remover otro firmante
         vm.prank(USER1);
         vm.expectRevert("Minimum 2 signers required");
         wallet.removeSigner(user2);
@@ -302,6 +300,27 @@ contract MultiSigWalletTest is Test {
         vm.expectRevert("Not a signer");
         wallet.confirmTransaction(0);
     }
+
+    function testCannotDeployWithTooFewConfirmations() public {
+        address[] memory _signers = new address[](3);
+        _signers[0] = USER1;
+        _signers[1] = user2;
+        _signers[2] = user3;
+
+        vm.expectRevert("Invalid confirmations");
+        new MultiSigWallet(_signers, 1); // Testing specifically the _requiredConfirmations >= 2 condition
+    }
+
+    function testCannotRemoveSignerNotInList() public {
+        address nonExistentSigner = address(0x8);
+
+        // Intentar remover un signatario que no está en la lista
+        vm.prank(USER1);
+        vm.expectRevert("Not a signer");
+        wallet.removeSigner(nonExistentSigner);
+    }
+
+
 }
 
 
