@@ -2,7 +2,7 @@
 pragma solidity ^0.8.17;
 
 /// @title MultiSigWallet
-/// @notice Un contrato de wallet multisig con al menos dos firmas requeridas para la ejecución de transacciones.
+
 contract MultiSigWallet {
     address public constant USER1 = address(0x4);
     address[] public signers;
